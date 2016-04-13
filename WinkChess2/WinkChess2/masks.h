@@ -152,7 +152,7 @@ std::unordered_map<long long, std::vector<short>> BP_MOVES_F[64];
 std::unordered_map<long long, std::vector<short>> BP_MOVES_E[64];
 
 short encodeMove(int start, int end) {
-	return (short)(start << 6 || end);
+	return (short)(start << 6 | end);
 }
 
 std::vector<short> encodeBitmask(long long bitboard, int start) {
@@ -167,27 +167,29 @@ std::vector<short> encodeBitmask(long long bitboard, int start) {
 
 void initMoves() {
 	int row, col, pos, index;
-	char combo, enemy, friendly;
+	int combo, enemy, friendly;
 	long long h_combo, h_friendly, h_enemy, v_combo, v_friendly, v_enemy;
 	
 	// horizontal and vertical move options given piece occupations
 	// combo represents 8 bits comprising row and pieces occupying row
 	for (combo = 0; combo < 256; combo++) {
-		// pos represents position of piece to 
+
 		for (pos = 0; pos < 8; pos++) {
 			enemy = friendly = 0;
 
 			// generate enemy and friendly move options
-			for (index = pos - 1; pos >= 0; pos--) {
+			for (index = pos - 1; index >= 0; index--) {
 				enemy |= (char)1 << index;
 				if (((combo >> index) & 1) == 0)
 					friendly |= (char)1 << index;
+				else break;
 			}
 
-			for (index = pos + 1; pos < 8; pos++) {
+			for (index = pos + 1; index < 8; index++) {
 				enemy |= (char)1 << index;
 				if (((combo >> index) & 1) == 0)
 					friendly |= (char)1 << index;
+				else break;
 			}
 
 			// iterate through possible rows this could apply to with pos acting as columns
@@ -196,9 +198,9 @@ void initMoves() {
 				h_friendly = (long long)(friendly << (row * 8));
 				h_enemy = (long long)(enemy << (row * 8));
 				H_MOVES_F[row * 8 + pos].insert(
-					std::pair<long long, std::vector<short>>(h_combo, encodeBitmask(h_friendly, row * 8 + col)));
+					std::pair<long long, std::vector<short>>(h_combo, encodeBitmask(h_friendly, row * 8 + pos)));
 				H_MOVES_E[row * 8 + pos].insert(
-					std::pair<long long, std::vector<short>>(h_combo, encodeBitmask(h_enemy, row * 8 + col)));
+					std::pair<long long, std::vector<short>>(h_combo, encodeBitmask(h_enemy, row * 8 + pos)));
 			}
 
 			// reshape horizontal bitmask to a vertical bitmask
@@ -211,12 +213,14 @@ void initMoves() {
 
 			// iterate through possibles columns this could apply to with pos acting as row
 			for (col = 0; col < 8; col++) {
-				V_MOVES_F[row * 8 + pos].insert(
+				V_MOVES_F[pos * 8 + col].insert(
 					std::pair<long long, std::vector<short>>(v_combo, encodeBitmask(v_friendly, pos * 8 + col)));
-				V_MOVES_E[row * 8 + pos].insert(
+				V_MOVES_E[pos * 8 + col].insert(
 					std::pair<long long, std::vector<short>>(v_combo, encodeBitmask(v_enemy, pos * 8 + col)));
 				// shift everything over 1 place
-
+				v_combo <<= 1;
+				v_friendly <<= 1;
+				v_enemy <<= 1;
 			}
 		}
 	}

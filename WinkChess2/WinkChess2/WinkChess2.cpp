@@ -8,9 +8,10 @@
 int main()
 {
 	initMasks();
-	printMasks(WP_MASK[12]);
-	printMasks(WP_MASK[16]);
-	printMasks(WP_MASK[15]);
-	printMasks(WP_MASK[53]);
+	initMoves();
+	std::vector<short> movelist = H_MOVES_E[12].at(0);
+	for (int i = 0; i < movelist.size(); i++) {
+		std::cout << movelist[i] << '\n';
+	}
 	return 0;
 }
